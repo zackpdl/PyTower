@@ -3,6 +3,74 @@ import os
 import math
 from enum import Enum
 
+# Tower properties for each cultivation stage
+TOWER_PROPERTIES = {
+    "Qi Condensation": {
+        "damage": 10,
+        "range": 100,
+        "attack_speed": 1.0,
+        "cost": 100,
+        "color": (100, 200, 255),  # Light blue
+        "max_level": 3
+    },
+    "Foundation": {
+        "damage": 15,
+        "range": 120,
+        "attack_speed": 1.2,
+        "cost": 200,
+        "color": (150, 150, 255),  # Blue-purple
+        "max_level": 3
+    },
+    "Core Formation": {
+        "damage": 25,
+        "range": 130,
+        "attack_speed": 1.3,
+        "cost": 300,
+        "color": (200, 100, 255),  # Purple
+        "max_level": 3
+    },
+    "Nascent Soul": {
+        "damage": 20,
+        "range": 140,
+        "attack_speed": 2.0,
+        "cost": 400,
+        "color": (255, 100, 200),  # Pink
+        "max_level": 3
+    },
+    "Soul Severing": {
+        "damage": 40,
+        "range": 110,
+        "attack_speed": 0.8,
+        "cost": 500,
+        "color": (255, 50, 50),    # Red
+        "max_level": 3
+    },
+    "Earth Immortal": {
+        "damage": 50,
+        "range": 150,
+        "attack_speed": 1.0,
+        "cost": 600,
+        "color": (50, 255, 50),    # Green
+        "max_level": 3
+    },
+    "Sky Immortal": {
+        "damage": 45,
+        "range": 200,
+        "attack_speed": 1.5,
+        "cost": 800,
+        "color": (255, 255, 100),  # Yellow
+        "max_level": 3
+    },
+    "Heaven Immortal": {
+        "damage": 100,
+        "range": 180,
+        "attack_speed": 1.8,
+        "cost": 1000,
+        "color": (255, 215, 0),    # Gold
+        "max_level": 3
+    }
+}
+
 class TowerType(Enum):
     QI_CONDENSATION = 1
     FOUNDATION = 2
@@ -12,66 +80,6 @@ class TowerType(Enum):
     EARTH_IMMORTAL = 6
     SKY_IMMORTAL = 7
     HEAVEN_IMMORTAL = 8
-
-# Tower properties with cultivation-themed attributes
-TOWER_PROPERTIES = {
-    TowerType.QI_CONDENSATION: {
-        "damage": 10,
-        "range": 150,
-        "cost": 100,
-        "color": (0, 255, 0),
-        "description": "Gathers Qi from surroundings"
-    },
-    TowerType.FOUNDATION: {
-        "damage": 20,
-        "range": 180,
-        "cost": 200,
-        "color": (0, 200, 50),
-        "description": "Establishes spiritual foundation"
-    },
-    TowerType.CORE_FORMATION: {
-        "damage": 35,
-        "range": 200,
-        "cost": 350,
-        "color": (0, 150, 100),
-        "description": "Forms spiritual core"
-    },
-    TowerType.NASCENT_SOUL: {
-        "damage": 50,
-        "range": 220,
-        "cost": 500,
-        "color": (0, 100, 150),
-        "description": "Manifests nascent soul"
-    },
-    TowerType.SOUL_SEVERING: {
-        "damage": 75,
-        "range": 250,
-        "cost": 750,
-        "color": (0, 50, 200),
-        "description": "Severs mortal ties"
-    },
-    TowerType.EARTH_IMMORTAL: {
-        "damage": 100,
-        "range": 280,
-        "cost": 1000,
-        "color": (0, 0, 255),
-        "description": "Commands earthly laws"
-    },
-    TowerType.SKY_IMMORTAL: {
-        "damage": 150,
-        "range": 320,
-        "cost": 1500,
-        "color": (100, 0, 255),
-        "description": "Controls heavenly essence"
-    },
-    TowerType.HEAVEN_IMMORTAL: {
-        "damage": 200,
-        "range": 400,
-        "cost": 2000,
-        "color": (200, 0, 255),
-        "description": "Transcends mortal realm"
-    }
-}
 
 class Projectile:
     def __init__(self, start_x, start_y, target_x, target_y, speed=10):
@@ -123,14 +131,19 @@ class Projectile:
 
 class Tower:
     def __init__(self, tower_type, x, y):
-        self.type = tower_type
+        self.tower_type = tower_type
         self.x = x
         self.y = y
-        self.properties = TOWER_PROPERTIES[tower_type]
         self.level = 1
         self.target = None
-        self.attack_cooldown = 0
-        self.projectiles = []
+        self.attack_timer = 0
+        self.properties = TOWER_PROPERTIES[tower_type]
+        
+        # Initialize base stats
+        self.damage = self.properties["damage"]
+        self.range = self.properties["range"]
+        self.attack_speed = self.properties["attack_speed"]
+        self.max_level = self.properties["max_level"]
         
         try:
             self.sprite = pygame.image.load(os.path.join('assets', 'wuxia.png'))
@@ -139,17 +152,23 @@ class Tower:
             self.sprite = pygame.Surface((50, 50))
             self.sprite.fill(self.properties["color"])
             
-    @staticmethod
-    def get_cost(tower_type):
-        """Get the cost of a tower type"""
-        return TOWER_PROPERTIES[tower_type]["cost"]
+        self.projectiles = []
         
     def draw(self, screen):
-        """Draw the tower and its range circle"""
-        # Draw range circle
-        pygame.draw.circle(screen, (100, 100, 100, 50), 
-                         (int(self.x + 25), int(self.y + 25)), 
-                         self.properties["range"], 1)
+        # Draw tower base
+        pygame.draw.circle(screen, self.properties["color"], (int(self.x), int(self.y)), 15)
+        
+        # Draw range circle (semi-transparent)
+        range_surface = pygame.Surface((self.range * 2, self.range * 2), pygame.SRCALPHA)
+        pygame.draw.circle(range_surface, (*self.properties["color"], 30), (self.range, self.range), self.range)
+        screen.blit(range_surface, (self.x - self.range, self.y - self.range))
+        
+        # Draw level indicator
+        if self.level > 1:
+            font = pygame.font.Font(None, 20)
+            level_text = font.render(str(self.level), True, (255, 255, 255))
+            level_rect = level_text.get_rect(center=(self.x, self.y))
+            screen.blit(level_text, level_rect)
         
         # Draw tower
         screen.blit(self.sprite, (self.x, self.y))
@@ -160,8 +179,8 @@ class Tower:
         
     def update(self, enemies):
         """Update tower state and attack enemies"""
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
+        if self.attack_timer > 0:
+            self.attack_timer -= 1
             
         # Update existing projectiles
         for projectile in self.projectiles[:]:
@@ -182,13 +201,13 @@ class Tower:
                 closest_dist = dist
         
         # Attack if we have a target and cooldown is ready
-        if closest_enemy and self.attack_cooldown <= 0:
+        if closest_enemy and self.attack_timer <= 0:
             # Deal damage
             damage = self.properties["damage"]
             closest_enemy.health -= damage
             
             # Reset cooldown
-            self.attack_cooldown = 30  # Adjust this value to change attack speed
+            self.attack_timer = 30  # Adjust this value to change attack speed
             
             # Create new projectile
             new_projectile = Projectile(
@@ -201,9 +220,14 @@ class Tower:
             self.projectiles.append(new_projectile)
             
     def upgrade(self):
-        if self.level < 3:  # Max level 3
+        if self.level < self.max_level:  # Max level
             self.level += 1
-            self.properties["damage"] *= 1.5
-            self.properties["range"] *= 1.2
+            self.damage *= 1.5
+            self.range *= 1.2
             return True
         return False
+
+    @staticmethod
+    def get_cost(tower_type):
+        """Get the cost of a tower type"""
+        return TOWER_PROPERTIES[tower_type]["cost"]

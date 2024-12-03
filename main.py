@@ -36,39 +36,282 @@ class GameManager:
             self.background = pygame.Surface((screen.get_width(), screen.get_height()))
             self.background.fill((20, 20, 40))
         
+        # Stage configurations
+        self.stage_paths = {
+            1: [  # Basic path (Foundation Stage)
+                (-50, 360), (150, 360), (150, 150), (450, 150),
+                (450, 570), (750, 570), (750, 360), (900, 360)
+            ],
+            2: [  # Zigzag path (Core Formation Stage)
+                (-50, 150), (200, 150), (200, 570), (400, 570),
+                (400, 150), (600, 150), (600, 570), (900, 570)
+            ],
+            3: [  # Spiral path (Nascent Soul Stage)
+                (-50, 360), (200, 360), (200, 150), (700, 150),
+                (700, 570), (150, 570), (150, 250), (900, 250)
+            ],
+            4: [  # Double loop (Soul Formation Stage)
+                (-50, 250), (200, 250), (200, 150), (400, 150),
+                (400, 350), (200, 350), (200, 550), (400, 550),
+                (400, 350), (600, 350), (600, 250), (900, 250)
+            ],
+            5: [  # Cross path (Golden Core Stage)
+                (-50, 150), (900, 150),  # Top horizontal
+                (-50, 570), (900, 570),  # Bottom horizontal
+                (425, 50), (425, 670)    # Vertical middle
+            ],
+            6: [  # Diamond path (Void Stage)
+                (-50, 360), (200, 150), (425, 50), (650, 150),
+                (800, 360), (650, 570), (425, 670), (200, 570),
+                (-50, 360)
+            ],
+            7: [  # Figure 8 (Immortal Stage)
+                (-50, 360), (150, 150), (425, 360), (700, 150),
+                (900, 360), (700, 570), (425, 360), (150, 570),
+                (-50, 360)
+            ],
+            8: [  # Final challenge (Heaven Stage)
+                (-50, 50), (900, 50),    # Top
+                (900, 670), (-50, 670),  # Bottom
+                (-50, 360), (900, 360),  # Middle
+                (425, 50), (425, 670)    # Vertical
+            ]
+        }
+        
+        # Stage configurations with cultivation themes
+        self.stage_configs = {
+            1: {  # Foundation Stage
+                "name": "Qi Gathering Grounds",
+                "waves": [
+                    {"num_enemies": 8, "enemy_level": 1},   # Basic enemies
+                    {"num_enemies": 10, "enemy_level": 1},
+                    {"num_enemies": 12, "enemy_level": 2},
+                    {"num_enemies": 15, "enemy_level": 2},
+                    {"num_enemies": 1, "enemy_level": 3}    # Boss wave
+                ],
+                "path": self.stage_paths[1]
+            },
+            2: {  # Core Formation Stage
+                "name": "Spirit Realm Trials",
+                "waves": [
+                    {"num_enemies": 12, "enemy_level": 2},
+                    {"num_enemies": 15, "enemy_level": 2},
+                    {"num_enemies": 18, "enemy_level": 3},
+                    {"num_enemies": 20, "enemy_level": 3},
+                    {"num_enemies": 1, "enemy_level": 4}    # Boss wave
+                ],
+                "path": self.stage_paths[2]
+            },
+            3: {  # Nascent Soul Stage
+                "name": "Soul Formation Path",
+                "waves": [
+                    {"num_enemies": 15, "enemy_level": 3},
+                    {"num_enemies": 18, "enemy_level": 3},
+                    {"num_enemies": 20, "enemy_level": 4},
+                    {"num_enemies": 25, "enemy_level": 4},
+                    {"num_enemies": 2, "enemy_level": 5}    # Dual boss wave
+                ],
+                "path": self.stage_paths[3]
+            },
+            4: {  # Soul Severing Stage
+                "name": "Mortal Severance Realm",
+                "waves": [
+                    {"num_enemies": 20, "enemy_level": 4},
+                    {"num_enemies": 25, "enemy_level": 4},
+                    {"num_enemies": 25, "enemy_level": 5},
+                    {"num_enemies": 30, "enemy_level": 5},
+                    {"num_enemies": 2, "enemy_level": 6}    # Dual boss wave
+                ],
+                "path": self.stage_paths[4]
+            },
+            5: {  # Golden Core Stage
+                "name": "Core Ascension Path",
+                "waves": [
+                    {"num_enemies": 25, "enemy_level": 5},
+                    {"num_enemies": 30, "enemy_level": 5},
+                    {"num_enemies": 30, "enemy_level": 6},
+                    {"num_enemies": 35, "enemy_level": 6},
+                    {"num_enemies": 3, "enemy_level": 7}    # Triple boss wave
+                ],
+                "path": self.stage_paths[5]
+            },
+            6: {  # Void Stage
+                "name": "Void Transcendence",
+                "waves": [
+                    {"num_enemies": 30, "enemy_level": 6},
+                    {"num_enemies": 35, "enemy_level": 6},
+                    {"num_enemies": 35, "enemy_level": 7},
+                    {"num_enemies": 40, "enemy_level": 7},
+                    {"num_enemies": 3, "enemy_level": 8}    # Triple boss wave
+                ],
+                "path": self.stage_paths[6]
+            },
+            7: {  # Immortal Stage
+                "name": "Immortal Ascension",
+                "waves": [
+                    {"num_enemies": 35, "enemy_level": 7},
+                    {"num_enemies": 40, "enemy_level": 7},
+                    {"num_enemies": 40, "enemy_level": 8},
+                    {"num_enemies": 45, "enemy_level": 8},
+                    {"num_enemies": 4, "enemy_level": 9}    # Quad boss wave
+                ],
+                "path": self.stage_paths[7]
+            },
+            8: {  # Heaven Stage
+                "name": "Heaven Tribulation",
+                "waves": [
+                    {"num_enemies": 40, "enemy_level": 8},
+                    {"num_enemies": 45, "enemy_level": 8},
+                    {"num_enemies": 45, "enemy_level": 9},
+                    {"num_enemies": 50, "enemy_level": 9},
+                    {"num_enemies": 5, "enemy_level": 10}   # Final boss wave
+                ],
+                "path": self.stage_paths[8]
+            }
+        }
+        
+        # Set current stage configuration
+        stage_config = self.stage_configs.get(stage_level, self.stage_configs[1])
+        self.waves = stage_config["waves"]
+        self.enemy_path = stage_config["path"]
+        self.stage_name = stage_config["name"]
+        
         # Wave management
         self.wave_timer = 0
         self.wave_cooldown = 1000  # Time between waves in milliseconds
-        self.enemies_per_wave = 10
         self.enemies_spawned_this_wave = 0
         self.wave_completed = False
-        self.waves = [
-            {"num_enemies": 10, "enemy_level": 1},  # Wave 1
-            {"num_enemies": 15, "enemy_level": 2},  # Wave 2
-            {"num_enemies": 20, "enemy_level": 3},  # Wave 3
-            # Add more waves as needed
-        ]
         self.current_wave_data = self.waves[0]
         
         # Enemy wave management
         self.paused = True
         
-        # Enemy path (you can modify this based on your map)
-        self.enemy_path = [
-            (0, 300),      # Start from left
-            (200, 300),    # First turn
-            (200, 100),    # Go up
-            (400, 100),    # Go right
-            (400, 500),    # Go down
-            (600, 500),    # Go right
-            (600, 300),    # Go up
-            (800, 300)     # Exit point
-        ]
-        
         # Spawn timer
         self.spawn_timer = 0
         self.spawn_cooldown = 1500  # Time between enemy spawns in milliseconds
         
+        self.tower_menu_active = False
+        self.tower_buttons = {}
+        self.tower_menu_pos = (0, 0)
+        self.selected_tower = None
+        
+    def draw_tower_menu(self, x, y):
+        """Draw the tower selection menu at the given position"""
+        menu_width = 300
+        menu_height = 400
+        padding = 10
+        
+        # Adjust menu position to stay within screen bounds
+        menu_x = min(max(x, 0), self.screen.get_width() - menu_width)
+        menu_y = min(max(y, 0), self.screen.get_height() - menu_height)
+        
+        # Draw menu background
+        menu_surface = pygame.Surface((menu_width, menu_height))
+        menu_surface.fill((50, 50, 50))
+        menu_surface.set_alpha(230)  # Slight transparency
+        
+        # Draw tower options
+        font = pygame.font.Font(None, 24)
+        y_offset = padding
+        button_height = 45
+        
+        tower_options = [
+            ("Qi Condensation", "Basic tower - Cost: 100 Qi Pills"),
+            ("Foundation", "Medium range - Cost: 200 Qi Pills"),
+            ("Core Formation", "High damage - Cost: 300 Qi Pills"),
+            ("Nascent Soul", "Fast attack - Cost: 400 Qi Pills"),
+            ("Soul Severing", "Area damage - Cost: 500 Qi Pills"),
+            ("Earth Immortal", "Stunning attacks - Cost: 600 Qi Pills"),
+            ("Sky Immortal", "Ultimate range - Cost: 800 Qi Pills"),
+            ("Heaven Immortal", "Divine power - Cost: 1000 Qi Pills")
+        ]
+        
+        self.tower_buttons = {}  # Store button rectangles
+        
+        for name, desc in tower_options:
+            # Draw button background
+            button_rect = pygame.Rect(padding, y_offset, menu_width - 2*padding, button_height)
+            pygame.draw.rect(menu_surface, (70, 70, 70), button_rect)
+            
+            # Draw tower name
+            name_text = font.render(name, True, (255, 215, 0))
+            menu_surface.blit(name_text, (button_rect.x + 5, y_offset + 5))
+            
+            # Draw description
+            desc_font = pygame.font.Font(None, 20)
+            desc_text = desc_font.render(desc, True, (200, 200, 200))
+            menu_surface.blit(desc_text, (button_rect.x + 5, y_offset + 25))
+            
+            # Store button position relative to menu
+            self.tower_buttons[name] = button_rect.move(menu_x, menu_y)
+            
+            y_offset += button_height + 5
+        
+        # Draw close button
+        close_rect = pygame.Rect(menu_width - 30, 5, 25, 25)
+        pygame.draw.rect(menu_surface, (150, 50, 50), close_rect)
+        close_text = font.render("×", True, (255, 255, 255))
+        menu_surface.blit(close_text, (menu_width - 25, 5))
+        self.tower_buttons["close"] = close_rect.move(menu_x, menu_y)
+        
+        # Draw menu on screen
+        self.screen.blit(menu_surface, (menu_x, menu_y))
+        self.tower_menu_active = True
+        self.tower_menu_pos = (menu_x, menu_y)
+
+    def handle_tower_menu_click(self, pos):
+        """Handle clicks on the tower selection menu"""
+        if not self.tower_menu_active:
+            return False
+            
+        for tower_name, button_rect in self.tower_buttons.items():
+            if button_rect.collidepoint(pos):
+                if tower_name == "close":
+                    self.tower_menu_active = False
+                else:
+                    # Get tower cost
+                    tower_costs = {
+                        "Qi Condensation": 100,
+                        "Foundation": 200,
+                        "Core Formation": 300,
+                        "Nascent Soul": 400,
+                        "Soul Severing": 500,
+                        "Earth Immortal": 600,
+                        "Sky Immortal": 800,
+                        "Heaven Immortal": 1000
+                    }
+                    
+                    cost = tower_costs[tower_name]
+                    
+                    # Check if player can afford tower
+                    if self.currency >= cost:
+                        self.currency -= cost
+                        self.selected_tower = tower_name
+                        self.tower_menu_active = False
+                        return True
+                    else:
+                        # Show insufficient funds message
+                        print("Insufficient Qi Pills!")
+                return True
+        return False
+
+    def handle_click(self, pos):
+        """Handle mouse clicks"""
+        if self.tower_menu_active:
+            # Handle tower menu clicks
+            if self.handle_tower_menu_click(pos):
+                return
+            
+        # Check if click is on a valid tower placement spot
+        if self.is_valid_placement(pos):
+            if self.selected_tower:
+                # Place selected tower
+                self.place_tower(pos[0], pos[1], self.selected_tower)
+                self.selected_tower = None
+            else:
+                # Show tower menu
+                self.draw_tower_menu(pos[0], pos[1])
+
     def add_tower(self, x, y):
         """Add a tower at the specified position if there's enough currency"""
         cost = 100  # Base tower cost
@@ -89,7 +332,7 @@ class GameManager:
                 x1, y1 = self.enemy_path[i]
                 x2, y2 = self.enemy_path[i + 1]
                 # Calculate distance from point to line segment
-                dist = point_to_line_distance((x, y), (x1, y1), (x2, y2))
+                dist = self.point_to_line_distance((x, y), (x1, y1), (x2, y2))
                 if dist < 30:  # Minimum distance from path
                     can_place = False
                     break
@@ -100,6 +343,96 @@ class GameManager:
                 self.currency -= cost
                 return True
         return False
+        
+    def place_tower(self, x, y, tower_name):
+        """Add a tower at the specified position if there's enough currency"""
+        # Get tower cost
+        tower_costs = {
+            "Qi Condensation": 100,
+            "Foundation": 200,
+            "Core Formation": 300,
+            "Nascent Soul": 400,
+            "Soul Severing": 500,
+            "Earth Immortal": 600,
+            "Sky Immortal": 800,
+            "Heaven Immortal": 1000
+        }
+        
+        cost = tower_costs[tower_name]
+        
+        if self.currency >= cost:
+            # Check if tower can be placed (not too close to path or other towers)
+            can_place = True
+            # Check distance from other towers
+            for tower in self.towers:
+                dx = tower.x - x
+                dy = tower.y - y
+                distance = math.sqrt(dx * dx + dy * dy)
+                if distance < 50:  # Minimum distance between towers
+                    can_place = False
+                    break
+                    
+            # Check distance from path
+            for i in range(len(self.enemy_path) - 1):
+                x1, y1 = self.enemy_path[i]
+                x2, y2 = self.enemy_path[i + 1]
+                # Calculate distance from point to line segment
+                dist = self.point_to_line_distance((x, y), (x1, y1), (x2, y2))
+                if dist < 30:  # Minimum distance from path
+                    can_place = False
+                    break
+                    
+            if can_place:
+                tower = Tower(tower_name, x, y)
+                self.towers.append(tower)
+                self.currency -= cost
+                return True
+        return False
+        
+    def is_valid_placement(self, pos):
+        """Check if a tower can be placed at the given position"""
+        x, y = pos
+        
+        # Check if position is within screen bounds
+        if x < 0 or x > self.screen.get_width() or y < 0 or y > self.screen.get_height():
+            return False
+            
+        # Check distance from other towers
+        for tower in self.towers:
+            dx = tower.x - x
+            dy = tower.y - y
+            distance = math.sqrt(dx * dx + dy * dy)
+            if distance < 50:  # Minimum distance between towers
+                return False
+                
+        # Check distance from path
+        for i in range(len(self.enemy_path) - 1):
+            x1, y1 = self.enemy_path[i]
+            x2, y2 = self.enemy_path[i + 1]
+            # Calculate distance from point to line segment
+            dist = self.point_to_line_distance((x, y), (x1, y1), (x2, y2))
+            if dist < 30:  # Minimum distance from path
+                return False
+                
+        return True
+        
+    def point_to_line_distance(self, point, line_start, line_end):
+        """Calculate the distance from a point to a line segment"""
+        x, y = point
+        x1, y1 = line_start
+        x2, y2 = line_end
+        
+        # Calculate the length of the line segment
+        line_length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        if line_length == 0:
+            return math.sqrt((x - x1)**2 + (y - y1)**2)
+            
+        # Calculate the distance from point to line
+        t = max(0, min(1, ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (line_length**2)))
+        proj_x = x1 + t * (x2 - x1)
+        proj_y = y1 + t * (y2 - y1)
+        
+        return math.sqrt((x - proj_x)**2 + (y - proj_y)**2)
         
     def spawn_enemy(self):
         # Create enemy at the start of the path
@@ -183,6 +516,9 @@ class GameManager:
         # Draw HUD
         self.draw_hud(screen)
         
+        if self.tower_menu_active:
+            self.draw_tower_menu(self.tower_menu_pos[0], self.tower_menu_pos[1])
+        
     def draw_hud(self, screen):
         """Draw heads-up display with game information"""
         # Setup font
@@ -209,9 +545,21 @@ class GameManager:
         screen.blit(wave_text, (padding, y_pos))
         
         # Draw selected tower info at bottom
-        tower_cost = Tower.get_cost(self.selected_tower_type)
-        tower_text = font.render(f"Selected: {self.selected_tower_type.name} ({tower_cost} Qi)", True, (200, 200, 255))
-        screen.blit(tower_text, (padding, screen.get_height() - 40))
+        if self.selected_tower:
+            tower_cost = 0
+            tower_costs = {
+                "Qi Condensation": 100,
+                "Foundation": 200,
+                "Core Formation": 300,
+                "Nascent Soul": 400,
+                "Soul Severing": 500,
+                "Earth Immortal": 600,
+                "Sky Immortal": 800,
+                "Heaven Immortal": 1000
+            }
+            tower_cost = tower_costs[self.selected_tower]
+            tower_text = font.render(f"Selected: {self.selected_tower} ({tower_cost} Qi)", True, (200, 200, 255))
+            screen.blit(tower_text, (padding, screen.get_height() - 40))
 
 class Game:
     def __init__(self, screen, selected_stage):
@@ -258,13 +606,7 @@ class Game:
                     
                     # Handle tower placement
                     if event.button == 1:  # Left click
-                        cost = 100  # Base tower cost
-                        if self.game_manager.currency >= cost:
-                            if self.game_manager.add_tower(mouse_pos[0], mouse_pos[1]):
-                                self.game_manager.currency -= cost
-                                print(f"Placed tower. Remaining Qi Pills: {self.game_manager.currency}")
-                        else:
-                            print("Not enough Qi Pills!")
+                        self.game_manager.handle_click(mouse_pos)
             
             # Update game state
             self.game_manager.update()
@@ -292,31 +634,6 @@ class Game:
         
         # Draw game objects through game manager
         self.game_manager.draw(self.screen)
-
-def point_to_line_distance(point, line_start, line_end):
-    """Calculate distance from point to line segment"""
-    x, y = point
-    x1, y1 = line_start
-    x2, y2 = line_end
-    
-    # Vector from line start to end
-    line_vec = (x2 - x1, y2 - y1)
-    # Vector from line start to point
-    point_vec = (x - x1, y - y1)
-    # Length of line
-    line_len = math.sqrt(line_vec[0] ** 2 + line_vec[1] ** 2)
-    
-    if line_len == 0:
-        return math.sqrt((x - x1) ** 2 + (y - y1) ** 2)
-        
-    # Project point_vec onto line_vec
-    t = max(0, min(1, (point_vec[0] * line_vec[0] + point_vec[1] * line_vec[1]) / (line_len * line_len)))
-    
-    # Get closest point on line segment
-    proj_x = x1 + t * line_vec[0]
-    proj_y = y1 + t * line_vec[1]
-    
-    return math.sqrt((x - proj_x) ** 2 + (y - proj_y) ** 2)
 
 if __name__ == "__main__":
     # If run directly, start with stage 1

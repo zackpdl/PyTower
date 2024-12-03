@@ -82,23 +82,33 @@ class MainMenu:
         # Draw background
         self.screen.blit(self.background, (0, 0))
         
-        font = pygame.font.Font(None, self.font_size)
-        
         # Draw title
-        title = font.render("Select Stage", True, (255, 255, 255))
+        font = pygame.font.Font(None, self.font_size)
+        title = font.render("Select Cultivation Stage", True, (255, 215, 0))
         title_rect = title.get_rect(center=(self.screen_width/2, 50))
         self.screen.blit(title, title_rect)
         
-        # Clear and store new button positions
-        self.buttons.clear()
+        # Stage names and descriptions
+        stage_info = {
+            1: {"name": "Qi Gathering Grounds", "desc": "Begin your cultivation journey"},
+            2: {"name": "Spirit Realm Trials", "desc": "Test your foundation"},
+            3: {"name": "Soul Formation Path", "desc": "Form your nascent soul"},
+            4: {"name": "Mortal Severance Realm", "desc": "Sever your mortal ties"},
+            5: {"name": "Core Ascension Path", "desc": "Forge your golden core"},
+            6: {"name": "Void Transcendence", "desc": "Transcend the void"},
+            7: {"name": "Immortal Ascension", "desc": "Ascend to immortality"},
+            8: {"name": "Heaven Tribulation", "desc": "Face the heavenly trial"}
+        }
         
-        # Draw stage buttons
-        button_width = 150
-        button_height = 50
-        buttons_per_row = 4
-        margin = 20
-        start_x = (self.screen_width - (button_width * buttons_per_row + margin * (buttons_per_row - 1))) // 2
+        # Calculate button layout
+        buttons_per_row = 2
+        button_width = 400
+        button_height = 80
+        margin = 50
+        start_x = (self.screen_width - (buttons_per_row * button_width + (buttons_per_row - 1) * margin)) // 2
         start_y = 150
+        
+        small_font = pygame.font.Font(None, int(self.font_size * 0.7))
         
         for i in range(8):  # 8 stages
             row = i // buttons_per_row
@@ -106,12 +116,25 @@ class MainMenu:
             x = start_x + col * (button_width + margin)
             y = start_y + row * (button_height + margin)
             
+            # Draw stage button
             button = pygame.Rect(x, y, button_width, button_height)
             pygame.draw.rect(self.screen, (100, 100, 100), button)
-            text = font.render(f"Stage {i+1}", True, (255, 255, 255))
-            text_rect = text.get_rect(center=button.center)
-            self.screen.blit(text, text_rect)
-            self.buttons[f"Stage {i+1}"] = button
+            
+            # Draw stage name and description
+            stage_num = i + 1
+            info = stage_info[stage_num]
+            
+            # Stage name
+            name_text = font.render(f"Stage {stage_num}: {info['name']}", True, (255, 255, 255))
+            name_rect = name_text.get_rect(centerx=button.centerx, top=button.top + 10)
+            self.screen.blit(name_text, name_rect)
+            
+            # Stage description
+            desc_text = small_font.render(info['desc'], True, (200, 200, 200))
+            desc_rect = desc_text.get_rect(centerx=button.centerx, top=name_rect.bottom + 5)
+            self.screen.blit(desc_text, desc_rect)
+            
+            self.buttons[f"Stage {stage_num}"] = button
         
         # Draw back button
         back_button = pygame.Rect(20, 20, 100, 40)
