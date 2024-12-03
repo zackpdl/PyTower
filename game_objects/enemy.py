@@ -20,6 +20,37 @@ class Enemy:
         self.move_count = 0
         self.level = level
         
+        # Load and setup sprite animation
+        try:
+            sprite_sheet = pygame.image.load(os.path.join('assets', 'monster.gif'))
+            # If it's a GIF, convert it for better performance
+            sprite_sheet = sprite_sheet.convert_alpha()
+            
+            # Setup animation frames
+            self.frames = []
+            frame_width = sprite_sheet.get_width()
+            frame_height = sprite_sheet.get_height()
+            self.frames.append(sprite_sheet)  # For GIF, we use the whole image
+            
+            # Scale the sprite (adjust size as needed)
+            scale = 0.25  # Reduced from 0.5 to 0.25 to make monster 50% smaller
+            self.frame_width = int(frame_width * scale)
+            self.frame_height = int(frame_height * scale)
+            self.frames = [pygame.transform.scale(frame, (self.frame_width, self.frame_height)) 
+                         for frame in self.frames]
+            
+            # Animation variables
+            self.current_frame = 0
+            self.animation_speed = 0.2  # Adjust this to change animation speed
+            self.animation_time = 0
+            
+        except Exception as e:
+            print(f"Error loading enemy sprite: {e}")
+            # Fallback to a simple shape if sprite loading fails
+            self.frames = None
+            self.frame_width = 30
+            self.frame_height = 30
+        
         # Enemy types and their base stats
         self.enemy_types = {
             "MINION": {"health": 100, "speed": 2, "damage": 10},
@@ -65,30 +96,48 @@ class Enemy:
                 dy = dy / distance * self.speed
                 self.x += dx
                 self.y += dy
+                
+                # Update sprite direction (flip if moving left)
+                if self.frames and dx < 0:  # Moving left
+                    self.frames = [pygame.transform.flip(frame, True, False) 
+                                 for frame in self.frames]
+                elif self.frames and dx > 0:  # Moving right
+                    self.frames = [pygame.transform.flip(frame, False, False) 
+                                 for frame in self.frames]
         
     def take_damage(self, amount):
         self.health -= amount
         return self.health <= 0
         
     def draw(self, screen):
-        # Draw enemy
-        color = (255, 0, 0)  # Red for enemy
-        pygame.draw.circle(screen, color, (int(self.x), int(self.y)), 15)
+        # Draw the enemy sprite
+        if self.frames:
+            # Calculate the position to center the sprite
+            sprite_x = self.x - self.frame_width // 2
+            sprite_y = self.y - self.frame_height // 2
+            
+            # Update animation
+            self.animation_time += self.animation_speed
+            self.current_frame = int(self.animation_time) % len(self.frames)
+            
+            # Draw the current frame
+            screen.blit(self.frames[self.current_frame], (sprite_x, sprite_y))
+        else:
+            # Fallback to drawing a circle if sprite loading failed
+            pygame.draw.circle(screen, (255, 0, 0), (int(self.x), int(self.y)), 15)
         
         # Draw health bar
+        health_bar_width = 40
+        health_bar_height = 5
         health_ratio = self.health / self.max_health
-        bar_width = 30
-        bar_height = 5
-        green_width = int(bar_width * health_ratio)
-        
-        # Background (red) health bar
-        pygame.draw.rect(screen, (255, 0, 0),
-                        (self.x - bar_width//2, self.y - 25,
-                         bar_width, bar_height))
-        # Foreground (green) health bar
-        pygame.draw.rect(screen, (0, 255, 0),
-                        (self.x - bar_width//2, self.y - 25,
-                         green_width, bar_height))
+        pygame.draw.rect(screen, (255, 0, 0), 
+                        (self.x - health_bar_width/2, 
+                         self.y - self.frame_height/2 - 10, 
+                         health_bar_width, health_bar_height))
+        pygame.draw.rect(screen, (0, 255, 0), 
+                        (self.x - health_bar_width/2, 
+                         self.y - self.frame_height/2 - 10, 
+                         health_bar_width * health_ratio, health_bar_height))
         
     def get_drops(self):
         """Get currency drops when enemy is defeated"""
