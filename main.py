@@ -28,6 +28,14 @@ class GameManager:
         self.lives = 20
         self.screen = screen
         
+        # Load background
+        try:
+            self.background = pygame.image.load(os.path.join('assets', 'game_bg.png'))
+            self.background = pygame.transform.scale(self.background, (screen.get_width(), screen.get_height()))
+        except:
+            self.background = pygame.Surface((screen.get_width(), screen.get_height()))
+            self.background.fill((20, 20, 40))
+        
         # Wave management
         self.wave_timer = 0
         self.wave_cooldown = 1000  # Time between waves in milliseconds
@@ -154,34 +162,61 @@ class GameManager:
             if not projectile.is_on_screen():
                 self.projectiles.remove(projectile)
                 
-        # Draw currency info
-        font = pygame.font.Font(None, 36)
-        qi_text = font.render(f"Qi Pills: {self.currency}", True, (255, 255, 255))
-        spirit_text = font.render(f"Spirit Stones: {self.spirit_stones}", True, (255, 215, 0))
-        self.screen.blit(qi_text, (10, 50))
-        self.screen.blit(spirit_text, (10, 90))
-            
     def draw(self, screen):
-        # Draw all game objects
+        """Draw all game elements"""
+        # Draw background
+        screen.blit(self.background, (0, 0))
+        
+        # Draw enemy path
+        for i in range(len(self.enemy_path) - 1):
+            pygame.draw.line(screen, (100, 100, 100), 
+                           self.enemy_path[i], self.enemy_path[i + 1], 2)
+        
+        # Draw towers
         for tower in self.towers:
             tower.draw(screen)
+        
+        # Draw enemies
         for enemy in self.enemies:
             enemy.draw(screen)
-        for projectile in self.projectiles:
-            projectile.draw(screen)
+            
+        # Draw HUD
+        self.draw_hud(screen)
+        
+    def draw_hud(self, screen):
+        """Draw heads-up display with game information"""
+        # Setup font
+        font = pygame.font.Font(None, 32)
+        padding = 10
+        line_height = 30
+        y_pos = padding
+        
+        # Draw currency with gold color for spirit stones
+        qi_text = font.render(f"Qi Pills: {self.currency}", True, (200, 255, 200))
+        spirit_text = font.render(f"Spirit Stones: {self.spirit_stones}", True, (255, 215, 0))
+        screen.blit(qi_text, (padding, y_pos))
+        y_pos += line_height
+        screen.blit(spirit_text, (padding, y_pos))
+        
+        # Draw lives with red color
+        y_pos += line_height
+        lives_text = font.render(f"Lives: {self.lives}", True, (255, 100, 100))
+        screen.blit(lives_text, (padding, y_pos))
+        
+        # Draw wave progress with cyan color
+        y_pos += line_height
+        wave_text = font.render(f"Wave: {self.wave + 1}/{len(self.waves)}", True, (100, 255, 255))
+        screen.blit(wave_text, (padding, y_pos))
+        
+        # Draw selected tower info at bottom
+        tower_cost = Tower.get_cost(self.selected_tower_type)
+        tower_text = font.render(f"Selected: {self.selected_tower_type.name} ({tower_cost} Qi)", True, (200, 200, 255))
+        screen.blit(tower_text, (padding, screen.get_height() - 40))
 
 class Game:
     def __init__(self, screen, selected_stage):
         self.screen = screen
         self.selected_stage = selected_stage
-        
-        # Load background
-        try:
-            self.background = pygame.image.load(os.path.join('assets', 'game_bg.png'))
-            self.background = pygame.transform.scale(self.background, (screen.get_width(), screen.get_height()))
-        except:
-            self.background = pygame.Surface((screen.get_width(), screen.get_height()))
-            self.background.fill((20, 20, 40))
         
         # Initialize game state and manager
         self.game_state = GameState.PLAYING
@@ -242,11 +277,6 @@ class Game:
             pygame.draw.rect(self.screen, (100, 100, 100), self.back_btn)
             self.screen.blit(self.back_text, self.back_text_rect)
             
-            # Draw tower selection info
-            font = pygame.font.Font(None, 36)
-            tower_text = font.render(f"Selected Tower: {self.game_manager.selected_tower_type.name}", True, (255, 255, 255))
-            self.screen.blit(tower_text, (10, self.screen.get_height() - 40))
-            
             pygame.display.flip()
             clock.tick(60)
         
@@ -254,7 +284,7 @@ class Game:
         
     def draw(self):
         # Draw background
-        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(self.game_manager.background, (0, 0))
         
         # Draw back button
         pygame.draw.rect(self.screen, (100, 100, 100), self.back_btn)
@@ -262,14 +292,6 @@ class Game:
         
         # Draw game objects through game manager
         self.game_manager.draw(self.screen)
-        
-        # Draw UI elements
-        font = pygame.font.SysFont(None, 32)
-        wave_text = font.render(f"Wave: {self.game_manager.wave + 1}", True, (255, 255, 255))
-        lives_text = font.render(f"Lives: {self.game_manager.lives}", True, (255, 255, 255))
-        
-        self.screen.blit(wave_text, (10, 10))
-        self.screen.blit(lives_text, (10, 40))
 
 def point_to_line_distance(point, line_start, line_end):
     """Calculate distance from point to line segment"""
